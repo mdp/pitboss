@@ -22,6 +22,24 @@ data
     runner.send(JSON.stringify({code: @code})) # Setup
     runner.send(JSON.stringify({id: "123", context:{}})) # Setup
 
+describe "Running code that assumes priviledge", ->
+  beforeEach ->
+    @code = """
+require('http');
+123;
+    """
+
+  it "should fail on require", (done) ->
+    runner = fork('./lib/runner.js')
+    runner.on 'message', (data) ->
+      msg = JSON.parse(data)
+      assert.equal(msg.id, "123")
+      assert.equal(msg.result, null)
+      assert.equal(msg.error, "VM Syntax Error: SyntaxError: Unexpected identifier")
+      done()
+    runner.send(JSON.stringify({code: @code})) # Setup
+    runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+
 describe "Running shitty code", ->
   beforeEach ->
     @code = """
