@@ -1,8 +1,7 @@
 assert = require 'assert'
-utils = require '../src/utilities'
 {fork} = require 'child_process'
 
-describe "Running dubius code", ->
+describe "Running dubious code", ->
   beforeEach ->
     @code = """
 // EchoTron: returns the 'data' variable in a VM
@@ -35,7 +34,25 @@ require('http');
       msg = JSON.parse(data)
       assert.equal(msg.id, "123")
       assert.equal(msg.result, null)
-      assert.equal(msg.error, "VM Syntax Error: SyntaxError: Unexpected identifier")
+      assert.equal(msg.error, "VM Runtime Error: ReferenceError: require is not defined")
+      done()
+    runner.send(JSON.stringify({code: @code})) # Setup
+    runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+
+describe "Running code that uses Buffer", ->
+  beforeEach ->
+    @code = """
+var buf = new Buffer();
+123;
+    """
+
+  it "should fail on require", (done) ->
+    runner = fork('./lib/runner.js')
+    runner.on 'message', (data) ->
+      msg = JSON.parse(data)
+      assert.equal(msg.id, "123")
+      assert.equal(msg.result, null)
+      assert.equal(msg.error, "VM Runtime Error: ReferenceError: Buffer is not defined")
       done()
     runner.send(JSON.stringify({code: @code})) # Setup
     runner.send(JSON.stringify({id: "123", context:{}})) # Setup
