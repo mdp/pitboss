@@ -2,39 +2,59 @@ vm = require 'vm'
 util = require 'util'
 
 script = null
+errorStatus = 0
+errorStatusMsg = null
+STATUS =
+  'FATAL': 1
 
-if process.env['CODE']
+process.on 'message', (json) ->
   try
-    script = vm.createScript(process.env['CODE'])
+    msg = JSON.parse(json)
+    parseMessage(msg)
   catch err
-    process.stderr.write "VM Syntax Error: #{err}"
-    # Exit on syntax failure
-    process.exit(1)
-else
-  process.stderr.write "Must pass in code via $CODE env variable"
-  process.exit(2)
+    error("JSON Error: #{err}")
+    return false
 
-msg = ''
-json = null
-process.stdin.resume() # Start stdin to prevent exit
-process.stdin.on 'data', (data) ->
-  msg =  msg + data.toString()
-  if msg[msg.length - 1] == '\n' # EOL
-    result = null
-    try
-      json = JSON.parse(msg)
-    catch err
-      process.stderr.write("JSON Error: #{err}")
-      process.exit(3)
-    result = run(json)
-    msg = ''
-    json =  null
-    process.stdout.write JSON.stringify(result || null)
+parseMessage = (msg) ->
+  if msg['code']
+    create(msg['code'])
+  else
+    run(msg)
 
-run = (context) ->
-  result = null
+create = (code) ->
   try
-    result = script.runInNewContext(context)
+    script = vm.createScript(code)
   catch err
-    process.stderr.write "VM Runtime Error: #{err}"
-  result
+    # Fatal, never try again
+    errorStatus = STATUS['FATAL']
+    errorStatusMsg = "VM Syntax Error: #{err}"
+
+run = (msg) ->
+  if isFatalError()
+    error errorStatusMsg, msg.id
+    return false
+  unless script
+    error "Code not setup: #{err}"
+    return false
+  try
+    res =
+      result: script.runInNewContext(msg.context || {}) || null # script can return undefined, ensure it's null
+      id: msg.id
+    message(res)
+  catch err
+    error "VM Runtime Error: #{err}", msg.id
+
+isFatalError = ->
+  if errorStatus == STATUS['FATAL']
+    true
+  else
+    false
+
+error = (msg, id) ->
+  id ||= null
+  message
+    error: msg
+    id: id
+
+message = (msg) ->
+  process.send JSON.stringify(msg)
