@@ -14,6 +14,7 @@ process.on 'message', (msg) ->
     run(msg)
 
 create = (code) ->
+  code = "\"use strict\";\n#{code}"
   try
     script = vm.createScript(code)
   catch err
