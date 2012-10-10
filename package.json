@@ -6,7 +6,7 @@
   "repository": "git://github.com/mdp/pitboss.git",
   "author": "Mark Percival <mark@markpercival.us> (http://markpercival.us)",
   "scripts": {
-    "test": "mocha --no-colors --compilers coffee:coffee-script test/*_test.coffee",
+    "test": "rm -rf lib && coffee --compile -o lib/ src/ && mocha --no-colors --compilers coffee:coffee-script test/*_test.coffee",
     "prepublish": "rm -rf lib && coffee --compile -o lib/ src/"
   },
   "devDependencies": {
