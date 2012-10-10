@@ -16,13 +16,12 @@ describe "The forkable process", ->
       """
 
     it "run without errors", (done) ->
-      @runner.on 'message', (data) ->
-        msg = JSON.parse(data)
+      @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, null)
         done()
-      @runner.send(JSON.stringify({code: @code})) # Setup
-      @runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+      @runner.send({code: @code}) # Setup
+      @runner.send({id: "123", context:{}}) # Setup
 
   describe "running code that assumes priviledge", ->
     beforeEach ->
@@ -32,14 +31,13 @@ describe "The forkable process", ->
       """
 
     it "should fail on require", (done) ->
-      @runner.on 'message', (data) ->
-        msg = JSON.parse(data)
+      @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, null)
         assert.equal(msg.error, "VM Runtime Error: ReferenceError: require is not defined")
         done()
-      @runner.send(JSON.stringify({code: @code})) # Setup
-      @runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+      @runner.send({code: @code}) # Setup
+      @runner.send({id: "123", context:{}}) # Setup
 
   describe "Running code that uses JSON global", ->
     beforeEach ->
@@ -48,13 +46,12 @@ describe "The forkable process", ->
       """
 
     it "should work as expected", (done) ->
-      @runner.on 'message', (data) ->
-        msg = JSON.parse(data)
+      @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, '{}')
         done()
-      @runner.send(JSON.stringify({code: @code})) # Setup
-      @runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+      @runner.send({code: @code}) # Setup
+      @runner.send({id: "123", context:{}}) # Setup
 
   describe "Running code that uses Buffer", ->
     beforeEach ->
@@ -64,14 +61,13 @@ describe "The forkable process", ->
       """
 
     it "should fail on require", (done) ->
-      @runner.on 'message', (data) ->
-        msg = JSON.parse(data)
+      @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, null)
         assert.equal(msg.error, "VM Runtime Error: ReferenceError: Buffer is not defined")
         done()
-      @runner.send(JSON.stringify({code: @code})) # Setup
-      @runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+      @runner.send({code: @code}) # Setup
+      @runner.send({id: "123", context:{}}) # Setup
 
   describe "Running shitty code", ->
     beforeEach ->
@@ -81,14 +77,13 @@ describe "The forkable process", ->
 
     # We can't even run this code, so we return an error immediately on run
     it "should return errors on running of bad syntax code", (done) ->
-      @runner.on 'message', (data) ->
-        msg = JSON.parse(data)
+      @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, undefined)
         assert.equal(msg.error, "VM Syntax Error: SyntaxError: Unexpected identifier")
         done()
-      @runner.send(JSON.stringify({code: @code})) # Setup
-      @runner.send(JSON.stringify({id: "123", context:{}})) # Setup
+      @runner.send({code: @code}) # Setup
+      @runner.send({id: "123", context:{}}) # Setup
 
   describe "Running runtime error code", ->
     beforeEach ->
@@ -98,12 +93,11 @@ describe "The forkable process", ->
       """
 
     it "should happily suck up and relay the errors", (done) ->
-      @runner.on 'message', (data) ->
-        msg = JSON.parse(data)
+      @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, undefined)
         assert.equal(msg.error, "VM Runtime Error: TypeError: Cannot read property '123' of undefined")
         done()
-      @runner.send(JSON.stringify({code: @code})) # Setup
-      @runner.send(JSON.stringify({id: "123", context:{data:'foo'}})) # Setup
+      @runner.send({code: @code}) # Setup
+      @runner.send({id: "123", context:{data:'foo'}}) # Setup
 

@@ -19,7 +19,7 @@ exports.Pitboss = class Pitboss extends EventEmitter
       @runner.run(c.context, c.callback)
 
 # Can only run one at a time due to the blocking nature of VM
-# Need to queue this up outside of the process
+# Need to queue this up outside of the process since it's over an async channel
 exports.Runner = class Runner extends EventEmitter
   constructor: (@code, @options) ->
     @options ||= {}
@@ -32,7 +32,7 @@ exports.Runner = class Runner extends EventEmitter
     @proc = fork('./lib/forkable.js')
     @proc.on 'message', @messageHandler
     @proc.on 'exit', @failedForkHandler
-    @proc.send JSON.stringify({code:@code})
+    @proc.send {code:@code}
 
   run: (context, callback) ->
     return false if @running
@@ -40,16 +40,15 @@ exports.Runner = class Runner extends EventEmitter
     msg =
       context: context
       id: id
-    @callback = callback
+    @callback = callback || false
     @startTimer()
     @running = id
-    @proc.send JSON.stringify msg
+    @proc.send msg
     id
 
-  messageHandler: (json) =>
+  messageHandler: (msg) =>
     @running = false
     @closeTimer()
-    msg = JSON.parse(json)
     @emit 'result', msg
     if @callback
       @callback(null, msg.result)

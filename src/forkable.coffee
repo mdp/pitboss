@@ -7,15 +7,7 @@ errorStatusMsg = null
 STATUS =
   'FATAL': 1
 
-process.on 'message', (json) ->
-  try
-    msg = JSON.parse(json)
-    parseMessage(msg)
-  catch err
-    error("JSON Error: #{err}")
-    return false
-
-parseMessage = (msg) ->
+process.on 'message', (msg) ->
   if msg['code']
     create(msg['code'])
   else
@@ -34,7 +26,7 @@ run = (msg) ->
     error errorStatusMsg, msg.id
     return false
   unless script
-    error "Code not setup: #{err}"
+    error "No code to run"
     return false
   try
     res =
@@ -57,4 +49,4 @@ error = (msg, id) ->
     id: id
 
 message = (msg) ->
-  process.send JSON.stringify(msg)
+  process.send msg
