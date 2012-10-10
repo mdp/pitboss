@@ -16,7 +16,6 @@ Status](https://secure.travis-ci.org/mdp/pitboss.png)](http://travis-ci.org/mdp/
     pitboss = new Pitboss(code)
     pitboss.run {num: 23}, (err, result) ->
       assert.equal 3, result
-      done()
 
 ### Handles processes that take too damn long
 
@@ -27,7 +26,6 @@ Status](https://secure.travis-ci.org/mdp/pitboss.png)](http://travis-ci.org/mdp/
       timeout: 2000
     pitboss.run {num: 23}, (err, result) ->
       assert.equal "Timeout", err
-      done()
 
 ### Doesn't choke under pressure(or shitty code)
 
@@ -38,7 +36,6 @@ Status](https://secure.travis-ci.org/mdp/pitboss.png)](http://travis-ci.org/mdp/
       timeout: 2000
     pitboss.run {num: 23}, (err, result) ->
       assert.equal "VM Syntax Error: SyntaxError: Unexpected identifier", err
-      done()
 
 ### Doesn't handle this! But 'ulimit' does!
 
@@ -50,6 +47,5 @@ Status](https://secure.travis-ci.org/mdp/pitboss.png)](http://travis-ci.org/mdp/
       timeout: 10000
     pitboss.run {num: 23}, (err, result) ->
       assert.equal "Process failed", err
-      done()
 
 And since Pitboss forks each process, ulimit kills only the runner
