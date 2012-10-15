@@ -36,7 +36,7 @@ describe "Running dubius code", ->
       assert.equal 123, result
       done()
 
-describe "Running infinite jest code", ->
+describe "Running infinite loop code", ->
   beforeEach ->
     @code = """
       if(typeof infinite != 'undefined' && infinite === true){

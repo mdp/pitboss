@@ -46,6 +46,12 @@ exports.Runner = class Runner extends EventEmitter
     @proc.send msg
     id
 
+  disconnect: ->
+    @proc.disconnect() if @proc and @proc.connected
+
+  kill: ->
+    @proc.kill("SIGKILL") if @proc and @proc.connected
+
   messageHandler: (msg) =>
     @running = false
     @closeTimer()
@@ -65,7 +71,7 @@ exports.Runner = class Runner extends EventEmitter
 
   timeout: =>
     @currentError = "Timedout"
-    @proc.kill("SIGKILL")
+    @kill()
 
   notifyCompleted: ->
     @emit 'completed'
