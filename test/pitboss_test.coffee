@@ -36,6 +36,19 @@ describe "Running dubius code", ->
       assert.equal 123, result
       done()
 
+describe "Running shitty code", ->
+  beforeEach ->
+    @code = """
+      WTF< this in not even code;
+    """
+
+  it "should return the error", (done) ->
+    pitboss = new Runner(@code)
+    pitboss.run {data: 123}, (err, result) ->
+      assert.equal "VM Syntax Error: SyntaxError: Unexpected identifier", err
+      assert.equal null, result
+      done()
+
 describe "Running infinite loop code", ->
   beforeEach ->
     @code = """
