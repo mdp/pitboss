@@ -14,7 +14,7 @@
     ,"should" : ">=1.1.0"
     ,"mocha" : ">=1.4.2"
   },
-  "main": "./lib/index.js",
+  "main": "./lib/pitboss.js",
   "engines": { "node": "0.8.x" },
   "license": "MIT"
 }

@@ -29,7 +29,7 @@ exports.Runner = class Runner extends EventEmitter
     @callback = null
 
   launchFork: ->
-    @proc = fork('./lib/forkable.js')
+    @proc = fork(__dirname + '/../lib/forkable.js')
     @proc.on 'message', @messageHandler
     @proc.on 'exit', @failedForkHandler
     @proc.send {code:@code}
@@ -57,7 +57,10 @@ exports.Runner = class Runner extends EventEmitter
     @closeTimer()
     @emit 'result', msg
     if @callback
-      @callback(null, msg.result)
+      if msg.error
+        @callback(msg.error)
+      else
+        @callback(null, msg.result)
     @notifyCompleted()
 
   failedForkHandler: =>
