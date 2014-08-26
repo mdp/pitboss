@@ -29,6 +29,8 @@ run = (msg) ->
   unless script
     error "No code to run"
     return false
+  if msg?.context?.debug is true
+    msg.context.console = console
   try
     res =
       result: script.runInNewContext(msg.context || {}) || null # script can return undefined, ensure it's null
