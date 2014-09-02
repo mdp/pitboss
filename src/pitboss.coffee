@@ -8,15 +8,15 @@ exports.Pitboss = class Pitboss extends EventEmitter
       @next()
     @q = []
 
-  run: (context, callback) ->
-    @q.push({context:context,callback:callback})
+  run: ({context, libraries}, callback) ->
+    @q.push({context: context, libraries: libraries, callback: callback})
     @next()
 
   next: ->
     return false if @runner.running
     c = @q.shift()
     if c
-      @runner.run(c.context, c.callback)
+      @runner.run({context: c.context, libraries: c.libraries}, c.callback)
 
 # Can only run one at a time due to the blocking nature of VM
 # Need to queue this up outside of the process since it's over an async channel
@@ -34,11 +34,12 @@ exports.Runner = class Runner extends EventEmitter
     @proc.on 'exit', @failedForkHandler
     @proc.send {code:@code}
 
-  run: (context, callback) ->
+  run: ({context, libraries}, callback) ->
     return false if @running
     id = Date.now().toString() + Math.floor(Math.random() * 1000)
     msg =
       context: context
+      libraries: libraries
       id: id
     @callback = callback || false
     @startTimer()
