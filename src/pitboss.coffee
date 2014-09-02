@@ -1,4 +1,4 @@
-{fork} = require 'child_process'
+{fork, exec} = require 'child_process'
 {EventEmitter}  = require 'events'
 
 exports.Pitboss = class Pitboss extends EventEmitter
@@ -24,6 +24,9 @@ exports.Runner = class Runner extends EventEmitter
   constructor: (@code, @options) ->
     @options ||= {}
     @options.timeout ||= 500
+    @options.heartBeatTick ||= 100
+    @options.memoryLimit ||= 1024*1024
+    @options.rssizeCommand ||= "ps -p PID -o rssize="
     @launchFork()
     @running = false
     @callback = null
@@ -32,6 +35,7 @@ exports.Runner = class Runner extends EventEmitter
     @proc = fork(__dirname + '/../lib/forkable.js')
     @proc.on 'message', @messageHandler
     @proc.on 'exit', @failedForkHandler
+    @rssizeCommand = @options.rssizeCommand.replace('PID',@proc.pid)
     @proc.send {code:@code}
 
   run: ({context, libraries}, callback) ->
@@ -52,6 +56,7 @@ exports.Runner = class Runner extends EventEmitter
 
   kill: ->
     @proc.kill("SIGKILL") if @proc and @proc.connected
+    @closeTimer()
 
   messageHandler: (msg) =>
     @running = false
@@ -77,13 +82,26 @@ exports.Runner = class Runner extends EventEmitter
     @currentError = "Timedout"
     @kill()
 
+  memoryExceeded: =>
+    exec @rssizeCommand,  (err, stdout, stderr) =>
+        err = err || stderr
+
+        if err
+          console.error "Command #{@rssizeCommand} failed:", err
+
+        if (not err) and parseInt(stdout, 10) > @options.memoryLimit
+          @currentError = "MemoryExceeded"
+          @kill()
+
   notifyCompleted: ->
     @emit 'completed'
 
   startTimer: ->
     @closeTimer()
     @timer = setTimeout(@timeout, @options['timeout'])
+    @memoryTimer = setInterval(@memoryExceeded, @options['heartBeatTick'])
 
   closeTimer: ->
     clearTimeout(@timer) if @timer
+    clearInterval(@memoryTimer) if @memoryTimer
 

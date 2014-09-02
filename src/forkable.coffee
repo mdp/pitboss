@@ -34,7 +34,7 @@ run = (msg) ->
 
   if msg?.libraries
     for lib in msg?.libraries
-      msg.context[lib] = eval lib
+      msg.context[lib] = require lib
   try
     res =
       result: script.runInNewContext(msg.context || {}) || null # script can return undefined, ensure it's null
