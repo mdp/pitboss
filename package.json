@@ -1,11 +1,13 @@
 {
   "name": "pitboss",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Runs untrusted code in a seperate process using Node VM",
   "keywords": ["sandbox", "untrusted code"],
   "repository": "git://github.com/mdp/pitboss.git",
   "author": "Mark Percival <mark@markpercival.us> (http://markpercival.us)",
   "scripts": {
+    "build": "rm -rf lib && coffee --bare --compile --output lib/ src/",
+    "postinstall": "rm -rf lib && coffee --bare --compile --output lib/ src/",
     "test": "rm -rf lib && coffee --compile -o lib/ src/ && mocha --no-colors --compilers coffee:coffee-script test/*_test.coffee",
     "prepublish": "rm -rf lib && coffee --compile -o lib/ src/"
   },
