@@ -2,7 +2,10 @@
   "name": "pitboss",
   "version": "0.1.3",
   "description": "Runs untrusted code in a seperate process using Node VM",
-  "keywords": ["sandbox", "untrusted code"],
+  "keywords": [
+    "sandbox",
+    "untrusted code"
+  ],
   "repository": "git://github.com/mdp/pitboss.git",
   "author": "Mark Percival <mark@markpercival.us> (http://markpercival.us)",
   "scripts": {
@@ -12,14 +15,16 @@
     "prepublish": "rm -rf lib && ./node_modules/.bin/coffee --compile -o lib/ src/"
   },
   "dependencies": {
-     "coffee-script" : "1.3.x"
-  }
+    "coffee-script": "^1.3.3"
+  },
   "devDependencies": {
-     "coffee-script" : "1.3.x"
-    ,"should" : ">=1.1.0"
-    ,"mocha" : ">=1.4.2"
+    "coffee-script": "1.3.x",
+    "should": ">=1.1.0",
+    "mocha": ">=1.4.2"
   },
   "main": "./lib/pitboss.js",
-  "engines": { "node": "0.8.x" },
+  "engines": {
+    "node": "0.8.x"
+  },
   "license": "MIT"
 }
