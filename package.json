@@ -1,6 +1,6 @@
 {
   "name": "pitboss",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Runs untrusted code in a seperate process using Node VM",
   "keywords": [
     "sandbox",
