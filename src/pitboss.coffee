@@ -26,7 +26,11 @@ exports.Runner = class Runner extends EventEmitter
     @options.timeout ||= 500
     @options.heartBeatTick ||= 100
     @options.memoryLimit ||= 1024*1024
-    @options.rssizeCommand ||= "ps -p PID -o rssize="
+    unless @options.rssizeCommand
+      if process.platform is 'darwin'
+        @options.rssizeCommand = 'ps -p PID -o rss='
+      else if process.platform is 'linux'
+        @options.rssizeCommand = 'ps -p PID -o rssize='
     @launchFork()
     @running = false
     @callback = null
