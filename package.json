@@ -1,6 +1,6 @@
 {
   "name": "pitboss",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Runs untrusted code in a seperate process using Node VM",
   "keywords": [
     "sandbox",
@@ -11,14 +11,13 @@
   "scripts": {
     "build": "rm -rf lib && coffee --bare --compile --output lib/ src/",
     "postinstall": "rm -rf lib && coffee --bare --compile --output lib/ src/",
-    "test": "rm -rf lib && coffee --compile -o lib/ src/ && mocha --no-colors --compilers coffee:coffee-script test/*_test.coffee",
+    "test": "rm -rf lib && coffee --compile -o lib/ src/ && mocha --no-colors --compilers coffee:coffee-script/register test/*_test.coffee",
     "prepublish": "rm -rf lib && coffee --compile -o lib/ src/"
   },
   "dependencies": {
-    "coffee-script": "~1.6.3"
+    "coffee-script": "~1.8.0"
   },
   "devDependencies": {
-    "coffee-script": "~1.6.3",
     "should": ">=1.1.0",
     "mocha": ">=1.4.2"
   },
