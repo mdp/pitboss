@@ -101,3 +101,44 @@ describe "The forkable process", ->
       @runner.send({code: @code}) # Setup
       @runner.send({id: "123", context:{data:'foo'}}) # Setup
 
+  describe "requiring libraries to context", () ->
+    describe "from array", () ->
+      beforeEach ->
+        @code = """
+          if(vm == undefined){
+            throw('vm is undefined');
+          }
+          null
+        """
+
+      it "should require and pass library to the context under variriable with module name", (done) ->
+        @runner.on 'message', (msg) ->
+          assert.equal msg.id, "123"
+          assert.equal msg.result, null
+          assert.equal msg.error, null
+          done()
+
+        @runner.send({code: @code}) # Setup
+        @runner.send({id: "123", context: {data:'foo'}, libraries: ['vm']}) # Setup
+
+    describe "from object for specifiyng context variable name", () ->
+    beforeEach ->
+        @code = """
+          if(vmFooBar == undefined){
+            throw('vmFooBar is undefined');
+          }
+          null
+        """
+
+      it "should require and pass library to the context under variriable with key name", (done) ->
+        @runner.on 'message', (msg) ->
+          assert.equal msg.id, "123"
+          assert.equal msg.result, null
+          assert.equal msg.error, null
+          done()
+
+        @runner.send({code: @code}) # Setup
+        @runner.send({id: "123", context: {data:'foo'}, libraries: {'vmFooBar': 'vm'}}) # Setup
+
+
+
