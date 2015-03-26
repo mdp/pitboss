@@ -36,9 +36,11 @@ run = (msg) ->
     if Array.isArray msg?.libraries
       for lib in msg?.libraries
         msg.context[lib] = require lib
-    else if typeof(msg?.libraries)
+    else if typeof(msg?.libraries) == 'object'
       for varName, lib of msg?.libraries
         msg.context[varName] = require lib
+    else
+      return error "Pitboss error: Libraries must be defined by an array or by an object.", msg.id
   try
     res =
       result: script.runInNewContext(msg.context || {}) || null # script can return undefined, ensure it's null
