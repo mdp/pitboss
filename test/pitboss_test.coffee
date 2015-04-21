@@ -1,6 +1,6 @@
 assert = require 'assert'
-{Runner} = require('../src/pitboss')
-{Pitboss} = require('../src/pitboss')
+{Runner} = require('../src/pitboss-ng')
+{Pitboss} = require('../src/pitboss-ng')
 
 describe "Pitboss running code", ->
   code = """

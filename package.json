@@ -1,6 +1,6 @@
 {
   "name": "pitboss-ng",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Runs untrusted code in a seperate process using Node VM. Fork original pitboss with support coffee-script 1.8+",
   "keywords": [
     "sandbox",
@@ -15,16 +15,15 @@
     "prepublish": "./scripts/compile",
     "test": "./scripts/test"
   },
-  "dependencies": {
-    "coffee-script": "~1.8.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "should": ">=1.1.0",
-    "mocha": ">=1.4.2"
+    "coffee-script": "^1.9.2",
+    "should": "^6.0.1",
+    "mocha": "^2.2.4"
   },
   "main": "./lib/pitboss.js",
   "engines": {
-    "node": ">= 0.8.x"
+    "node": ">= 0.10.x"
   },
   "license": "MIT"
 }

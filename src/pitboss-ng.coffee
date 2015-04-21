@@ -1,3 +1,4 @@
+path = require 'path'
 {fork, exec} = require 'child_process'
 {EventEmitter}  = require 'events'
 
@@ -36,7 +37,7 @@ exports.Runner = class Runner extends EventEmitter
     @callback = null
 
   launchFork: ->
-    @proc = fork(__dirname + '/../lib/forkable.js')
+    @proc = fork(path.join(__dirname, '../lib/forkable.js'))
     @proc.on 'message', @messageHandler
     @proc.on 'exit', @failedForkHandler
     @rssizeCommand = @options.rssizeCommand.replace('PID',@proc.pid)
