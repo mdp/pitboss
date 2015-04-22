@@ -1,4 +1,4 @@
-assert = require 'assert'
+{assert} = require 'chai'
 {Runner} = require('../src/pitboss-ng')
 {Pitboss} = require('../src/pitboss-ng')
 
@@ -52,7 +52,8 @@ describe "Pitboss modules loading code", ->
   it "should return an error when unknown module is used", (done) ->
     pitboss.run context: {data: "test"}, libraries: [], (err, result) ->
       assert.equal undefined, result
-      assert.equal 'VM Runtime Error: ReferenceError: console is not defined', err
+      assert.include err, 'VM Runtime Error: ReferenceError:'
+      assert.include err, 'console is not defined'
       done()
 
 describe "Running dubius code", ->
@@ -94,7 +95,8 @@ describe "Running shitty code", ->
 
   it "should return the error", (done) ->
     pitboss.run context: {data: 123}, (err, result) ->
-      assert.equal "VM Syntax Error: SyntaxError: Unexpected identifier", err
+      assert.include err, 'VM Syntax Error: SyntaxError:'
+      assert.include err, 'Unexpected identifier'
       assert.equal null, result
       done()
 
@@ -144,7 +146,7 @@ describe "Running code which causes memory leak", ->
 
   before ->
     pitboss = new Runner code,
-      timeout: 1500
+      timeout: 15000
       memoryLimit: 1024*100
 
   after ->

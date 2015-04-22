@@ -17,8 +17,8 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "chai": "^2.2.0",
     "coffee-script": "^1.9.2",
-    "should": "^6.0.1",
     "mocha": "^2.2.4"
   },
   "main": "./lib/pitboss.js",
