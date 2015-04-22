@@ -15,7 +15,9 @@
     "prepublish": "./scripts/compile",
     "test": "./scripts/test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "clone": "^1.0.2"
+  },
   "devDependencies": {
     "chai": "^2.2.0",
     "coffee-script": "^1.9.2",
