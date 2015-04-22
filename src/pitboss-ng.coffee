@@ -1,4 +1,5 @@
-{fork} = require 'child_process'
+path = require 'path'
+{fork, exec} = require 'child_process'
 {EventEmitter}  = require 'events'
 
 exports.Pitboss = class Pitboss extends EventEmitter
@@ -8,15 +9,15 @@ exports.Pitboss = class Pitboss extends EventEmitter
       @next()
     @q = []
 
-  run: (context, callback) ->
-    @q.push({context:context,callback:callback})
+  run: ({context, libraries}, callback) ->
+    @q.push({context: context, libraries: libraries, callback: callback})
     @next()
 
   next: ->
     return false if @runner.running
     c = @q.shift()
     if c
-      @runner.run(c.context, c.callback)
+      @runner.run({context: c.context, libraries: c.libraries}, c.callback)
 
 # Can only run one at a time due to the blocking nature of VM
 # Need to queue this up outside of the process since it's over an async channel
@@ -24,21 +25,30 @@ exports.Runner = class Runner extends EventEmitter
   constructor: (@code, @options) ->
     @options ||= {}
     @options.timeout ||= 500
+    @options.heartBeatTick ||= 100
+    @options.memoryLimit ||= 1024*1024
+    unless @options.rssizeCommand
+      if process.platform is 'darwin'
+        @options.rssizeCommand = 'ps -p PID -o rss='
+      else if process.platform is 'linux'
+        @options.rssizeCommand = 'ps -p PID -o rssize='
     @launchFork()
     @running = false
     @callback = null
 
   launchFork: ->
-    @proc = fork(__dirname + '/../lib/forkable.js')
+    @proc = fork(path.join(__dirname, '../lib/forkable.js'), [], {cwd: path.join(__dirname, '..')})
     @proc.on 'message', @messageHandler
     @proc.on 'exit', @failedForkHandler
-    @proc.send {code:@code}
+    @rssizeCommand = @options.rssizeCommand.replace('PID',@proc.pid)
+    @proc.send {code: @code, timeout: (@options.timeout + 100)}
 
-  run: (context, callback) ->
+  run: ({context, libraries}, callback) ->
     return false if @running
     id = Date.now().toString() + Math.floor(Math.random() * 1000)
     msg =
       context: context
+      libraries: libraries
       id: id
     @callback = callback || false
     @startTimer()
@@ -51,6 +61,7 @@ exports.Runner = class Runner extends EventEmitter
 
   kill: ->
     @proc.kill("SIGKILL") if @proc and @proc.connected
+    @closeTimer()
 
   messageHandler: (msg) =>
     @running = false
@@ -70,11 +81,24 @@ exports.Runner = class Runner extends EventEmitter
     error = @currentError || "Process Failed"
     @emit 'failed', error
     @callback(error) if @callback
-    @notifyCompleted()
+    @notifyCompleted() if @callback
 
   timeout: =>
-    @currentError = "Timedout"
+    @currentError ?= "Timedout"
     @kill()
+
+  memoryExceeded: =>
+    exec @rssizeCommand, (err, stdout, stderr) =>
+      err = err || stderr
+
+      if err
+        console.error "Command #{@rssizeCommand} failed:", err
+
+      if (not err) and parseInt(stdout, 10) > @options.memoryLimit
+        @currentError = "MemoryExceeded"
+        @kill()
+      return
+    return
 
   notifyCompleted: ->
     @emit 'completed'
@@ -82,7 +106,9 @@ exports.Runner = class Runner extends EventEmitter
   startTimer: ->
     @closeTimer()
     @timer = setTimeout(@timeout, @options['timeout'])
+    @memoryTimer = setInterval(@memoryExceeded, @options['heartBeatTick'])
 
   closeTimer: ->
     clearTimeout(@timer) if @timer
+    clearInterval(@memoryTimer) if @memoryTimer
 

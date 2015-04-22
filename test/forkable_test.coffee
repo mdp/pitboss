@@ -1,9 +1,19 @@
-assert = require 'assert'
+{assert} = require 'chai'
 {fork} = require 'child_process'
 
 describe "The forkable process", ->
+  referenceErrorMsg = 'VM Runtime Error: ReferenceError:'
+  syntaxErrorMsg = 'VM Syntax Error: SyntaxError:'
+  typeErrorMsg = 'VM Runtime Error: TypeError:'
+
   beforeEach ->
-    @runner = fork('./lib/forkable.js')
+    @runner = fork './lib/forkable.js'
+    return
+
+  afterEach ->
+    @runner?.proc?.removeAllListeners 'exit'
+    @runner?.kill?()
+    return
 
   describe "basic operation", ->
     beforeEach ->
@@ -34,7 +44,8 @@ describe "The forkable process", ->
       @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, null)
-        assert.equal(msg.error, "VM Runtime Error: ReferenceError: require is not defined")
+        assert.include msg.error, "require is not defined"
+        assert.include msg.error, referenceErrorMsg
         done()
       @runner.send({code: @code}) # Setup
       @runner.send({id: "123", context:{}}) # Setup
@@ -64,7 +75,8 @@ describe "The forkable process", ->
       @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, null)
-        assert.equal(msg.error, "VM Runtime Error: ReferenceError: Buffer is not defined")
+        assert.include msg.error, 'Buffer is not defined'
+        assert.include msg.error, referenceErrorMsg
         done()
       @runner.send({code: @code}) # Setup
       @runner.send({id: "123", context:{}}) # Setup
@@ -80,7 +92,8 @@ describe "The forkable process", ->
       @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, undefined)
-        assert.equal(msg.error, "VM Syntax Error: SyntaxError: Unexpected identifier")
+        assert.include msg.error, syntaxErrorMsg
+        assert.include msg.error, "Unexpected identifier"
         done()
       @runner.send({code: @code}) # Setup
       @runner.send({id: "123", context:{}}) # Setup
@@ -96,8 +109,65 @@ describe "The forkable process", ->
       @runner.on 'message', (msg) ->
         assert.equal(msg.id, "123")
         assert.equal(msg.result, undefined)
-        assert.equal(msg.error, "VM Runtime Error: TypeError: Cannot read property '123' of undefined")
+        assert.include msg.error, typeErrorMsg
+        assert.include msg.error, "Cannot read property '123' of undefined"
         done()
       @runner.send({code: @code}) # Setup
       @runner.send({id: "123", context:{data:'foo'}}) # Setup
+
+  describe "requiring libraries in context", () ->
+    describe "from array", () ->
+      beforeEach ->
+        @code = """
+          if(vm == undefined){
+            throw('vm is undefined');
+          }
+          null
+        """
+
+      it "should require and pass library to the context under variriable with module name", (done) ->
+        @runner.on 'message', (msg) ->
+          assert.equal msg.id, "123"
+          assert.equal msg.result, null
+          assert.equal msg.error, null
+          done()
+
+        @runner.send({code: @code}) # Setup
+        @runner.send({id: "123", context: {data:'foo'}, libraries: ['vm']}) # Setup
+
+    describe "from object for specifiyng context variable name", () ->
+      beforeEach ->
+          @code = """
+            if(vmFooBar == undefined){
+              throw('vmFooBar is undefined');
+            }
+            null
+          """
+
+        it "should require and pass library to the context under variable with key name", (done) ->
+          @runner.on 'message', (msg) ->
+            assert.equal msg.id, "123"
+            assert.equal msg.result, null
+            assert.equal msg.error, null
+            done()
+
+          @runner.send({code: @code}) # Setup
+          @runner.send({id: "123", context: {data:'foo'}, libraries: {'vmFooBar': 'vm'}}) # Setup
+
+    describe "from unintentional other type", () ->
+      beforeEach ->
+          @code = """
+          var a = 'result'
+          a
+          """
+
+        it "should raise and exception telling that it expects array or obejct", (done) ->
+          @runner.on 'message', (msg) ->
+            assert.equal msg.id, "1234"
+            assert.equal msg.result, undefined
+            assert.equal msg.error, "Pitboss error: Libraries must be defined by an array or by an object."
+            done()
+
+          @runner.send({code: @code}) # Setup
+          @runner.send({id: "1234", context: {data:'foo'}, libraries: "vm"}) # Setup
 
