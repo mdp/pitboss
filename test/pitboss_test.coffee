@@ -29,6 +29,34 @@ describe "Pitboss running code", ->
         done()
 
 
+describe "Pitboss trying to access variables out of context", ->
+  myVar = null
+
+  code = """
+    if (typeof myVar == 'undefined') {
+      var myVar;
+    };
+    myVar = "fromVM";
+    myVar
+    """
+
+  pitboss = null
+
+  before ->
+    myVar = "untouchable"
+    pitboss = new Pitboss(code)
+
+  after ->
+    pitboss?.proc?.kill()
+
+  it "should not allow for context variables changes", (done) ->
+
+    pitboss.run context: {love: 'tender', myVar: myVar}, (err, result) ->
+      assert.equal "fromVM", result
+      assert.equal "untouchable", myVar
+      done()
+
+
 describe "Pitboss modules loading code", ->
   code = """
       console.error(data);
