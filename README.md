@@ -1,3 +1,7 @@
+# Deprication and better alternative
+
+This library is old, unmaintained and not very useful. Please see [vm2](https://github.com/patriksimek/vm2#readme) if you're need something similar.
+
 [![Build
 Status](https://secure.travis-ci.org/mdp/pitboss.png)](http://travis-ci.org/mdp/pitboss)
 
