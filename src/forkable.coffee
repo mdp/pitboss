@@ -29,6 +29,12 @@ run = (msg) ->
   unless script
     error "No code to run"
     return false
+
+  msg.context ?= {}
+
+  if msg?.libraries
+    for lib in msg?.libraries
+      msg.context[lib] = require lib
   try
     res =
       result: script.runInNewContext(msg.context || {}) || null # script can return undefined, ensure it's null
